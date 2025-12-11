@@ -1,0 +1,47 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure SportSync",
+        "description": "Sport TV guide for Swedish sport broadcasts. Update interval is in seconds (default: {default_interval} minutes).",
+        "data": {
+          "scan_interval": "Update interval (seconds)",
+          "favorite_sports": "Favorite sports"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "SportSync is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SportSync settings",
+        "description": "Configure your favorites to filter broadcasts.",
+        "data": {
+          "scan_interval": "Update interval (seconds)",
+          "favorite_sports": "Favorite sports",
+          "favorite_teams": "Favorite teams (comma-separated)",
+          "favorite_leagues": "Favorite leagues (comma-separated)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "all_events": {
+        "name": "All broadcasts"
+      },
+      "favorites": {
+        "name": "Favorites"
+      },
+      "live": {
+        "name": "Live now"
+      },
+      "upcoming": {
+        "name": "Upcoming"
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Konfigurera SportSync",
+        "description": "Sport-TV-guide för svenska sportsändningar. Uppdateringsintervall är i sekunder (standard: {default_interval} minuter).",
+        "data": {
+          "scan_interval": "Uppdateringsintervall (sekunder)",
+          "favorite_sports": "Favoritsporter"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "SportSync är redan konfigurerad."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SportSync inställningar",
+        "description": "Konfigurera dina favoriter för att filtrera sändningar.",
+        "data": {
+          "scan_interval": "Uppdateringsintervall (sekunder)",
+          "favorite_sports": "Favoritsporter",
+          "favorite_teams": "Favoritlag (kommaseparerade)",
+          "favorite_leagues": "Favoritligor (kommaseparerade)"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "domain": "sportsync",
+  "name": "SportSync",
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/yourusername/sportsync",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/yourusername/sportsync/issues",
+  "requirements": ["beautifulsoup4>=4.12.0"],
+  "version": "1.0.0"
+}
