@@ -9,6 +9,8 @@ DOMAIN: Final = "sportsync"
 CONF_FAVORITE_SPORTS: Final = "favorite_sports"
 CONF_FAVORITE_TEAMS: Final = "favorite_teams"
 CONF_FAVORITE_LEAGUES: Final = "favorite_leagues"
+CONF_FAVORITE_TITLES: Final = "favorite_titles"
+CONF_FAVORITE_CHANNELS: Final = "favorite_channels"
 CONF_SCAN_INTERVAL: Final = "scan_interval"
 
 # Defaults

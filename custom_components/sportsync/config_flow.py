@@ -8,17 +8,24 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
-import homeassistant.helpers.config_validation as cv
 
 from .const import (
     DOMAIN,
     CONF_FAVORITE_SPORTS,
     CONF_FAVORITE_TEAMS,
     CONF_FAVORITE_LEAGUES,
+    CONF_FAVORITE_TITLES,
+    CONF_FAVORITE_CHANNELS,
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
-    SPORT_TYPES,
 )
+
+
+def parse_comma_list(value: str) -> list[str]:
+    """Parse comma-separated string to list."""
+    if not value:
+        return []
+    return [item.strip() for item in value.split(",") if item.strip()]
 
 
 class SportSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -30,7 +37,6 @@ class SportSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
-        # Check if already configured
         await self.async_set_unique_id(DOMAIN)
         self._abort_if_unique_id_configured()
 
@@ -42,18 +48,23 @@ class SportSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_SCAN_INTERVAL: user_input.get(
                         CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                     ),
-                    CONF_FAVORITE_SPORTS: user_input.get(CONF_FAVORITE_SPORTS, []),
-                    CONF_FAVORITE_TEAMS: [],
-                    CONF_FAVORITE_LEAGUES: [],
+                    CONF_FAVORITE_SPORTS: parse_comma_list(
+                        user_input.get(CONF_FAVORITE_SPORTS, "")
+                    ),
+                    CONF_FAVORITE_TEAMS: parse_comma_list(
+                        user_input.get(CONF_FAVORITE_TEAMS, "")
+                    ),
+                    CONF_FAVORITE_LEAGUES: parse_comma_list(
+                        user_input.get(CONF_FAVORITE_LEAGUES, "")
+                    ),
+                    CONF_FAVORITE_TITLES: parse_comma_list(
+                        user_input.get(CONF_FAVORITE_TITLES, "")
+                    ),
+                    CONF_FAVORITE_CHANNELS: parse_comma_list(
+                        user_input.get(CONF_FAVORITE_CHANNELS, "")
+                    ),
                 },
             )
-
-        # Build sport options for multiselect
-        sport_options = {
-            key: f"{data['emoji']} {data['name']}"
-            for key, data in SPORT_TYPES.items()
-            if key != "other"
-        }
 
         return self.async_show_form(
             step_id="user",
@@ -66,10 +77,11 @@ class SportSyncConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         vol.Coerce(int),
                         vol.Range(min=300, max=86400),
                     ),
-                    vol.Optional(
-                        CONF_FAVORITE_SPORTS,
-                        default=[],
-                    ): cv.multi_select(sport_options),
+                    vol.Optional(CONF_FAVORITE_SPORTS, default=""): str,
+                    vol.Optional(CONF_FAVORITE_TEAMS, default=""): str,
+                    vol.Optional(CONF_FAVORITE_LEAGUES, default=""): str,
+                    vol.Optional(CONF_FAVORITE_TITLES, default=""): str,
+                    vol.Optional(CONF_FAVORITE_CHANNELS, default=""): str,
                 }
             ),
             description_placeholders={
@@ -98,22 +110,27 @@ class SportSyncOptionsFlow(config_entries.OptionsFlow):
     ) -> FlowResult:
         """Manage the options."""
         if user_input is not None:
-            # Process teams and leagues (comma-separated strings to lists)
-            teams_str = user_input.get(CONF_FAVORITE_TEAMS, "")
-            teams = [t.strip() for t in teams_str.split(",") if t.strip()]
-
-            leagues_str = user_input.get(CONF_FAVORITE_LEAGUES, "")
-            leagues = [l.strip() for l in leagues_str.split(",") if l.strip()]
-
             return self.async_create_entry(
                 title="",
                 data={
                     CONF_SCAN_INTERVAL: user_input.get(
                         CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                     ),
-                    CONF_FAVORITE_SPORTS: user_input.get(CONF_FAVORITE_SPORTS, []),
-                    CONF_FAVORITE_TEAMS: teams,
-                    CONF_FAVORITE_LEAGUES: leagues,
+                    CONF_FAVORITE_SPORTS: parse_comma_list(
+                        user_input.get(CONF_FAVORITE_SPORTS, "")
+                    ),
+                    CONF_FAVORITE_TEAMS: parse_comma_list(
+                        user_input.get(CONF_FAVORITE_TEAMS, "")
+                    ),
+                    CONF_FAVORITE_LEAGUES: parse_comma_list(
+                        user_input.get(CONF_FAVORITE_LEAGUES, "")
+                    ),
+                    CONF_FAVORITE_TITLES: parse_comma_list(
+                        user_input.get(CONF_FAVORITE_TITLES, "")
+                    ),
+                    CONF_FAVORITE_CHANNELS: parse_comma_list(
+                        user_input.get(CONF_FAVORITE_CHANNELS, "")
+                    ),
                 },
             )
 
@@ -121,16 +138,11 @@ class SportSyncOptionsFlow(config_entries.OptionsFlow):
         current_sports = self.config_entry.options.get(CONF_FAVORITE_SPORTS, [])
         current_teams = self.config_entry.options.get(CONF_FAVORITE_TEAMS, [])
         current_leagues = self.config_entry.options.get(CONF_FAVORITE_LEAGUES, [])
+        current_titles = self.config_entry.options.get(CONF_FAVORITE_TITLES, [])
+        current_channels = self.config_entry.options.get(CONF_FAVORITE_CHANNELS, [])
         current_interval = self.config_entry.options.get(
             CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
         )
-
-        # Build sport options
-        sport_options = {
-            key: f"{data['emoji']} {data['name']}"
-            for key, data in SPORT_TYPES.items()
-            if key != "other"
-        }
 
         return self.async_show_form(
             step_id="init",
@@ -145,8 +157,8 @@ class SportSyncOptionsFlow(config_entries.OptionsFlow):
                     ),
                     vol.Optional(
                         CONF_FAVORITE_SPORTS,
-                        default=current_sports,
-                    ): cv.multi_select(sport_options),
+                        default=", ".join(current_sports),
+                    ): str,
                     vol.Optional(
                         CONF_FAVORITE_TEAMS,
                         default=", ".join(current_teams),
@@ -154,6 +166,14 @@ class SportSyncOptionsFlow(config_entries.OptionsFlow):
                     vol.Optional(
                         CONF_FAVORITE_LEAGUES,
                         default=", ".join(current_leagues),
+                    ): str,
+                    vol.Optional(
+                        CONF_FAVORITE_TITLES,
+                        default=", ".join(current_titles),
+                    ): str,
+                    vol.Optional(
+                        CONF_FAVORITE_CHANNELS,
+                        default=", ".join(current_channels),
                     ): str,
                 }
             ),

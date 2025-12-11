@@ -56,18 +56,28 @@ class SportEvent:
         sports: list[str] | None = None,
         teams: list[str] | None = None,
         leagues: list[str] | None = None,
+        titles: list[str] | None = None,
+        channels: list[str] | None = None,
     ) -> bool:
         """Check if event matches favorite criteria."""
-        if not sports and not teams and not leagues:
+        if not sports and not teams and not leagues and not titles and not channels:
             return False
 
-        # Match sport
-        if sports and self.sport in sports:
-            return True
+        title_lower = self.title.lower()
+
+        # Match sport (case-insensitive, partial match on sport name or key)
+        if sports:
+            sport_lower = self.sport.lower()
+            for sport in sports:
+                sport_search = sport.lower()
+                if sport_search in sport_lower or sport_lower in sport_search:
+                    return True
+                # Also check if sport keyword appears in title
+                if sport_search in title_lower:
+                    return True
 
         # Match team (case-insensitive, partial match)
         if teams:
-            title_lower = self.title.lower()
             for team in teams:
                 team_lower = team.lower()
                 if team_lower in title_lower:
@@ -78,10 +88,26 @@ class SportEvent:
                     return True
 
         # Match league
-        if leagues and self.league:
-            league_lower = self.league.lower()
+        if leagues:
             for league in leagues:
-                if league.lower() in league_lower:
+                league_lower = league.lower()
+                if self.league and league_lower in self.league.lower():
+                    return True
+                # Also check title for league name
+                if league_lower in title_lower:
+                    return True
+
+        # Match title keywords
+        if titles:
+            for title_keyword in titles:
+                if title_keyword.lower() in title_lower:
+                    return True
+
+        # Match channel
+        if channels:
+            channel_lower = self.channel.lower()
+            for channel in channels:
+                if channel.lower() in channel_lower:
                     return True
 
         return False
