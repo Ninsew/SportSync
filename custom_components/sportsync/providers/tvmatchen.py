@@ -88,16 +88,27 @@ class TVMatchenProvider(SportProvider):
     def _get_section_sport(self, section) -> str | None:
         """Get sport type from section header."""
         # Look for section header
-        header = section.select_one("h1, h2, h3, h4, .section-title, .sport-title")
+        header = section.select_one("h1, h2, h3, h4, .section-title, .sport-title, .category-title")
         if header:
-            return header.get_text(strip=True)
+            header_text = header.get_text(strip=True)
+            detected = self._detect_sport(header_text)
+            if detected != "other":
+                return detected
 
         # Check section class for sport name
         classes = section.get("class", [])
-        for cls in classes:
-            sport = self._detect_sport(cls)
-            if sport != "other":
-                return sport
+        if classes:
+            class_str = " ".join(classes)
+            detected = self._detect_sport(class_str)
+            if detected != "other":
+                return detected
+
+        # Check data attributes
+        for attr in ["data-sport", "data-category", "data-type"]:
+            if section.get(attr):
+                detected = self._detect_sport(section.get(attr))
+                if detected != "other":
+                    return detected
 
         return None
 
@@ -150,11 +161,8 @@ class TVMatchenProvider(SportProvider):
             # Extract channel
             channel = self._extract_channel(container, text)
 
-            # Detect sport
-            if sport_hint:
-                sport = self._detect_sport(sport_hint)
-            else:
-                sport = self._detect_sport(text)
+            # Get sport: prioritize section hint, then element sport, then detect from text
+            sport = sport_hint or self._get_element_sport(container) or self._detect_sport(text)
 
             # Extract teams
             home_team, away_team = self._extract_teams(title)
@@ -188,6 +196,35 @@ class TVMatchenProvider(SportProvider):
         except Exception as err:
             _LOGGER.debug("Error parsing event: %s", err)
             return None
+
+    def _get_element_sport(self, element) -> str | None:
+        """Extract sport from element's classes or data attributes."""
+        # Check element classes
+        classes = element.get("class", [])
+        if classes:
+            class_str = " ".join(classes)
+            detected = self._detect_sport(class_str)
+            if detected != "other":
+                return detected
+
+        # Check data attributes
+        for attr in ["data-sport", "data-category", "data-type"]:
+            if element.get(attr):
+                detected = self._detect_sport(element.get(attr))
+                if detected != "other":
+                    return detected
+
+        # Check for sport-specific child element
+        sport_elem = element.select_one(
+            ".sport, .category, .sport-type, "
+            "[class*='sport-'], [class*='category-']"
+        )
+        if sport_elem:
+            detected = self._detect_sport(sport_elem.get_text(strip=True))
+            if detected != "other":
+                return detected
+
+        return None
 
     def _parse_table_row(self, row, date: datetime) -> SportEvent | None:
         """Parse a table row as an event."""
