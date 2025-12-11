@@ -1,77 +1,79 @@
 # SportSync
 
-En Home Assistant custom integration för att visa sportsändningar på TV.
+A Home Assistant custom integration for displaying sport TV broadcasts.
 
-## Funktioner
+## Features
 
-- **Svenska sport-TV-guider**: Hämtar data från TVsporten.nu och TVmatchen.nu
-- **Favoriter**: Följ dina favoritlag, sporter och ligor
-- **Flera sensorer**:
-  - Alla sändningar
-  - Favoriter
-  - Live nu
-  - Kommande (nästa 3 timmar)
-- **Custom Lovelace-kort**: Snyggt kort med två lägen (alla/favoriter)
+- **Swedish Sport TV Guides**: Fetches data from TVsporten.nu and TVmatchen.nu
+- **Favorites**: Follow your favorite teams, sports, and leagues
+- **Multiple Sensors**:
+  - All broadcasts
+  - Favorites
+  - Live now
+  - Upcoming (next 3 hours)
+- **Custom Lovelace Card**: Beautiful card with two modes (all/favorites)
 
 ## Installation
 
-### HACS (Rekommenderat)
+### HACS (Recommended)
 
-1. Öppna HACS
-2. Gå till "Integrations"
-3. Klicka på de tre prickarna → "Custom repositories"
-4. Lägg till repo-URL med kategori "Integration"
-5. Sök efter "SportSync" och installera
-6. Starta om Home Assistant
-7. Gå till Inställningar → Enheter & Tjänster → Lägg till integration → SportSync
+1. Open HACS
+2. Go to "Integrations"
+3. Click the three dots → "Custom repositories"
+4. Add the repo URL with category "Integration"
+5. Search for "SportSync" and install
+6. Restart Home Assistant
+7. Go to Settings → Devices & Services → Add integration → SportSync
 
-### Manuell installation
+### Manual Installation
 
-1. Kopiera `custom_components/sportsync` till din `config/custom_components/` mapp
-2. Starta om Home Assistant
-3. Lägg till integrationen via UI
+1. Copy `custom_components/sportsync` to your `config/custom_components/` folder
+2. Restart Home Assistant
+3. Add the integration via UI
 
-## Lovelace-kort
+## Lovelace Card
 
-Se [sportsync-card](./sportsync-card/) för det tillhörande Lovelace-kortet.
+See [sportsync-card](https://github.com/Ninsew/sportsync-card) for the accompanying Lovelace card.
 
-## Konfiguration
+## Configuration
 
-### Inställningar
+### Settings
 
-I integrationens inställningar kan du konfigurera:
+In the integration settings you can configure:
 
-- **Uppdateringsintervall**: Hur ofta data hämtas (standard 30 min)
-- **Favoritsporter**: Välj vilka sporter du vill följa
-- **Favoritlag**: Ange lagnamn (kommaseparerade)
-- **Favoritligor**: Ange ligor (kommaseparerade)
+- **Update interval**: How often data is fetched (default 30 min)
+- **Favorite sports**: Choose which sports to follow
+- **Favorite teams**: Enter team names (comma-separated)
+- **Favorite leagues**: Enter leagues (comma-separated)
+- **Favorite channels**: Enter TV channels (comma-separated)
+- **Title keywords**: Keywords to match in event titles (comma-separated)
 
 ### Sensors
 
-Integrationen skapar följande sensorer:
+The integration creates the following sensors:
 
-| Sensor | Beskrivning |
+| Sensor | Description |
 |--------|-------------|
-| `sensor.sportsync_alla_sandningar` | Alla sändningar för dagen |
-| `sensor.sportsync_favoriter` | Sändningar som matchar dina favoriter |
-| `sensor.sportsync_live_nu` | Pågående sändningar |
-| `sensor.sportsync_kommande` | Sändningar inom 3 timmar |
+| `sensor.sportsync_all_broadcasts` | All broadcasts for the day |
+| `sensor.sportsync_favorites` | Broadcasts matching your favorites |
+| `sensor.sportsync_live_now` | Currently live broadcasts |
+| `sensor.sportsync_upcoming` | Broadcasts within 3 hours |
 
-### Sensor attribut
+### Sensor Attributes
 
-Varje sensor har ett `events`-attribut med en lista av sändningar:
+Each sensor has an `events` attribute with a list of broadcasts:
 
 ```json
 {
   "events": [
     {
       "id": "abc123",
-      "title": "Sverige - Finland",
+      "title": "Sweden - Finland",
       "sport": "hockey",
       "league": "Euro Hockey Tour",
       "channel": "TV4",
       "start_time": "2025-12-11T19:00:00",
-      "home_team": "Sverige",
+      "home_team": "Sweden",
       "away_team": "Finland",
       "is_live": false,
       "source": "tvsporten"
@@ -80,18 +82,18 @@ Varje sensor har ett `events`-attribut med en lista av sändningar:
 }
 ```
 
-## Lägga till fler datakällor
+## Adding More Data Sources
 
-Projektet är byggt med en provider-arkitektur som gör det enkelt att lägga till nya datakällor.
+The project is built with a provider architecture that makes it easy to add new data sources.
 
-### Skapa en ny provider
+### Creating a New Provider
 
-1. Skapa en ny fil i `providers/`, t.ex. `tvkampen.py`
-2. Ärv från `SportProvider` basklassen
-3. Implementera `async_fetch_events()` och parsing-logik
-4. Lägg till providern i `providers/__init__.py`
+1. Create a new file in `providers/`, e.g., `tvkampen.py`
+2. Inherit from the `SportProvider` base class
+3. Implement `async_fetch_events()` and parsing logic
+4. Add the provider to `providers/__init__.py`
 
-Exempel:
+Example:
 
 ```python
 from .base import SportProvider, SportEvent
@@ -107,39 +109,39 @@ class TVKampenProvider(SportProvider):
         return self._parse_html(html, date or datetime.now())
 
     def _parse_html(self, html, date):
-        # Din parsing-logik här
+        # Your parsing logic here
         pass
 ```
 
-## Felsökning
+## Troubleshooting
 
-### Inga sändningar visas
+### No Broadcasts Showing
 
-1. Kontrollera att integrationen är korrekt installerad
-2. Kolla loggarna: `Settings → System → Logs` och sök på "sportsync"
-3. Verifiera att providers kan nå källsidorna
+1. Verify the integration is correctly installed
+2. Check the logs: `Settings → System → Logs` and search for "sportsync"
+3. Verify that providers can reach the source websites
 
-### Parsing-problem
+### Parsing Issues
 
-Om HTML-strukturen på källsidorna ändras kan parsing sluta fungera. Du kan:
+If the HTML structure on source websites changes, parsing may stop working. You can:
 
-1. Öppna ett issue på GitHub
-2. Justera selectors i provider-filerna
+1. Open an issue on GitHub
+2. Adjust selectors in the provider files
 
-## Utveckling
+## Development
 
 ```bash
-# Klona repot
-git clone <repo-url>
-cd sportsync
+# Clone the repo
+git clone https://github.com/Ninsew/SportSync.git
+cd SportSync
 
-# Kopiera till HA config
+# Copy to HA config
 cp -r custom_components/sportsync /path/to/ha/config/custom_components/
 
-# Starta om HA och aktivera debug-loggning
+# Restart HA and enable debug logging
 ```
 
-Lägg till i `configuration.yaml` för debug-loggning:
+Add to `configuration.yaml` for debug logging:
 
 ```yaml
 logger:
@@ -148,6 +150,6 @@ logger:
     custom_components.sportsync: debug
 ```
 
-## Licens
+## License
 
 MIT

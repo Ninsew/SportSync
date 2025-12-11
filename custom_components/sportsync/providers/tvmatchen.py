@@ -184,7 +184,7 @@ class TVMatchenProvider(SportProvider):
                 id=event_id,
                 title=title,
                 sport=sport,
-                channel=channel or "Okänd kanal",
+                channel=channel or "Unknown channel",
                 start_time=start_time,
                 source=self.name,
                 league=league,

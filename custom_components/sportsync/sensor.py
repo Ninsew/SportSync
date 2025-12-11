@@ -68,7 +68,7 @@ class SportSyncAllEventsSensor(SportSyncBaseSensor):
     """Sensor for all sport events."""
 
     _attr_icon = "mdi:television-play"
-    _attr_name = "Alla sändningar"
+    _attr_translation_key = "all_events"
 
     def __init__(
         self,
@@ -109,7 +109,7 @@ class SportSyncFavoritesSensor(SportSyncBaseSensor):
     """Sensor for favorite sport events."""
 
     _attr_icon = "mdi:star"
-    _attr_name = "Favoriter"
+    _attr_translation_key = "favorites"
 
     def __init__(
         self,
@@ -178,7 +178,7 @@ class SportSyncLiveSensor(SportSyncBaseSensor):
     """Sensor for live sport events."""
 
     _attr_icon = "mdi:broadcast"
-    _attr_name = "Live nu"
+    _attr_translation_key = "live"
 
     def __init__(
         self,
@@ -211,7 +211,7 @@ class SportSyncUpcomingSensor(SportSyncBaseSensor):
     """Sensor for upcoming sport events."""
 
     _attr_icon = "mdi:clock-outline"
-    _attr_name = "Kommande"
+    _attr_translation_key = "upcoming"
 
     def __init__(
         self,

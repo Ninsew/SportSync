@@ -2,35 +2,51 @@
   "config": {
     "step": {
       "user": {
-        "title": "Konfigurera SportSync",
-        "description": "Sport-TV-guide för svenska sportsändningar.\n\nAnge favoriter som kommaseparerade listor.\nExempel sporter: hockey, fotboll, tennis\nExempel lag: Tre Kronor, Frölunda, AIK",
+        "title": "Configure SportSync",
+        "description": "Sport TV guide for Swedish sport broadcasts.\n\nEnter favorites as comma-separated lists.\nExample sports: hockey, football, tennis\nExample teams: Tre Kronor, Frölunda, AIK",
         "data": {
-          "scan_interval": "Uppdateringsintervall (sekunder)",
-          "favorite_sports": "Favoritsporter",
-          "favorite_teams": "Favoritlag",
-          "favorite_leagues": "Favoritligor",
-          "favorite_titles": "Sökord i titel",
-          "favorite_channels": "Favoritkanaler"
+          "scan_interval": "Update interval (seconds)",
+          "favorite_sports": "Favorite sports",
+          "favorite_teams": "Favorite teams",
+          "favorite_leagues": "Favorite leagues",
+          "favorite_titles": "Title keywords",
+          "favorite_channels": "Favorite channels"
         }
       }
     },
     "abort": {
-      "already_configured": "SportSync är redan konfigurerad."
+      "already_configured": "SportSync is already configured."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "SportSync inställningar",
-        "description": "Ange favoriter som kommaseparerade listor.\n\nExempel sporter: hockey, fotboll, tennis\nExempel lag: Tre Kronor, Frölunda, AIK\nExempel ligor: SHL, Allsvenskan, Premier League",
+        "title": "SportSync Settings",
+        "description": "Enter favorites as comma-separated lists.\n\nExample sports: hockey, football, tennis\nExample teams: Tre Kronor, Frölunda, AIK\nExample leagues: SHL, Allsvenskan, Premier League",
         "data": {
-          "scan_interval": "Uppdateringsintervall (sekunder)",
-          "favorite_sports": "Favoritsporter",
-          "favorite_teams": "Favoritlag",
-          "favorite_leagues": "Favoritligor",
-          "favorite_titles": "Sökord i titel",
-          "favorite_channels": "Favoritkanaler"
+          "scan_interval": "Update interval (seconds)",
+          "favorite_sports": "Favorite sports",
+          "favorite_teams": "Favorite teams",
+          "favorite_leagues": "Favorite leagues",
+          "favorite_titles": "Title keywords",
+          "favorite_channels": "Favorite channels"
         }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "all_events": {
+        "name": "All broadcasts"
+      },
+      "favorites": {
+        "name": "Favorites"
+      },
+      "live": {
+        "name": "Live now"
+      },
+      "upcoming": {
+        "name": "Upcoming"
       }
     }
   }
