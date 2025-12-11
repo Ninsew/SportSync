@@ -64,9 +64,13 @@ SPORT_KEYWORDS: Final[dict[str, str]] = {
     "champions league": "football",
     "europa league": "football",
     "conference league": "football",
-    "vm": "football",
-    "em": "football",
+    "fotbolls-vm": "football",
+    "fotbolls-em": "football",
+    "vm-kval fotboll": "football",
+    "em-kval fotboll": "football",
     "nations league": "football",
+    "vm i fotboll": "football",
+    "em i fotboll": "football",
     # Hockey
     "ishockey": "hockey",
     "hockey": "hockey",
@@ -140,7 +144,7 @@ SPORT_KEYWORDS: Final[dict[str, str]] = {
     "sim-": "swimming",
     # Combat
     "boxning": "boxing",
-    "box": "boxing",
+    "tungviktsboxning": "boxing",
     "mma": "mma",
     "ufc": "mma",
     # American sports

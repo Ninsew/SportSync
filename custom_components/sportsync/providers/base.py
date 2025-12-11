@@ -141,7 +141,12 @@ class SportProvider(ABC):
     def _detect_sport(self, text: str) -> str:
         """Detect sport type from text."""
         text_lower = text.lower()
-        for keyword, sport in SPORT_KEYWORDS.items():
+
+        # Sort keywords by length (longest first) to match specific terms before generic ones
+        # This ensures "skidskytte" matches before "vm", "champions league" before "league" etc.
+        sorted_keywords = sorted(SPORT_KEYWORDS.items(), key=lambda x: len(x[0]), reverse=True)
+
+        for keyword, sport in sorted_keywords:
             if keyword in text_lower:
                 return sport
         return "other"
