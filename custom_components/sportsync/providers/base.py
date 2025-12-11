@@ -178,7 +178,8 @@ class SportProvider(ABC):
         return "other"
 
     def _extract_teams(self, title: str) -> tuple[str | None, str | None]:
-        """Extract team names from title like 'Team A - Team B'."""
+        """Extract team names from title like 'Team A - Team B' or 'TeamATeamB'."""
+        # First try standard separators
         separators = [" - ", " – ", " — ", " vs ", " mot ", " v "]
         for sep in separators:
             if sep in title:
@@ -187,7 +188,43 @@ class SportProvider(ABC):
                     home = re.sub(r"\s*\([^)]*\)\s*$", "", parts[0].strip())
                     away = re.sub(r"\s*\([^)]*\)\s*$", "", parts[1].strip())
                     return home, away
+
+        # Try to detect concatenated team names (e.g., "SverigeTjeckien" or "PortoMalmö FF")
+        # Look for pattern where lowercase letter is followed by uppercase (camelCase boundary)
+        # This handles cases like "SverigeTjeckien", "PortoMalmö FF", etc.
+        match = re.match(r"^([A-ZÅÄÖ][a-zåäöé]+(?:\s+[A-ZÅÄÖ][a-zåäöé.]+)*)([A-ZÅÄÖ][a-zåäöé]+.*)$", title)
+        if match:
+            home = match.group(1).strip()
+            away = match.group(2).strip()
+            # Validate that both parts are reasonable team names (at least 2 chars)
+            if len(home) >= 2 and len(away) >= 2:
+                return home, away
+
+        # Try to find team names using known patterns with abbreviations
+        # Handles "FC Something" style teams concatenated
+        match = re.match(
+            r"^((?:[A-Z]{2,4}\s)?[A-ZÅÄÖ][a-zåäöé]+(?:\s+[A-ZÅÄÖ][a-zåäöé.]+)*)"
+            r"((?:[A-Z]{2,4}\s)?[A-ZÅÄÖ][a-zåäöé]+.*)$",
+            title
+        )
+        if match:
+            home = match.group(1).strip()
+            away = match.group(2).strip()
+            if len(home) >= 2 and len(away) >= 2:
+                return home, away
+
         return None, None
+
+    def _format_title_with_teams(self, title: str, home_team: str | None, away_team: str | None) -> str:
+        """Format title to include separator between teams if needed."""
+        # If we found teams and title doesn't already have a separator, format it
+        if home_team and away_team:
+            separators = [" - ", " – ", " — ", " vs ", " mot ", " v "]
+            has_separator = any(sep in title for sep in separators)
+            if not has_separator:
+                # Title is likely concatenated, return formatted version
+                return f"{home_team} - {away_team}"
+        return title
 
     def _parse_time(self, time_str: str, date: datetime | None = None) -> datetime | None:
         """Parse time string to datetime."""

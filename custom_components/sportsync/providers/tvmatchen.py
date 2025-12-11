@@ -161,11 +161,14 @@ class TVMatchenProvider(SportProvider):
             # Extract channel
             channel = self._extract_channel(container, text)
 
-            # Get sport: prioritize section hint, then element sport, then detect from text
-            sport = sport_hint or self._get_element_sport(container) or self._detect_sport(text)
-
             # Extract teams
             home_team, away_team = self._extract_teams(title)
+
+            # Format title with separator if teams were extracted from concatenated names
+            title = self._format_title_with_teams(title, home_team, away_team)
+
+            # Get sport: prioritize section hint, then element sport, then detect from text
+            sport = sport_hint or self._get_element_sport(container) or self._detect_sport(text)
 
             # Extract league
             league = self._extract_league(container, text)
@@ -324,27 +327,53 @@ class TVMatchenProvider(SportProvider):
             "[class*='league'], [class*='competition']"
         )
         if league_elem:
-            return league_elem.get_text(strip=True)
+            league_text = league_elem.get_text(strip=True)
+            # Don't return generic terms that might be misdetected
+            if league_text and league_text.lower() not in ["os", "vm", "em"]:
+                return league_text
 
-        # Pattern matching for common leagues
-        leagues = [
-            ("allsvenskan", "Allsvenskan"),
-            ("superettan", "Superettan"),
+        text_lower = text.lower()
+
+        # Specific league patterns (longer/more specific first)
+        specific_leagues = [
+            ("champions league", "Champions League"),
+            ("europa league", "Europa League"),
+            ("conference league", "Conference League"),
             ("premier league", "Premier League"),
+            ("premier padel", "Premier Padel Tour"),
             ("la liga", "La Liga"),
             ("serie a", "Serie A"),
             ("bundesliga", "Bundesliga"),
             ("ligue 1", "Ligue 1"),
-            ("champions league", "Champions League"),
-            ("europa league", "Europa League"),
-            ("shl", "SHL"),
+            ("eredivisie", "Eredivisie"),
+            ("allsvenskan", "Allsvenskan"),
+            ("superettan", "Superettan"),
             ("hockeyallsvenskan", "Hockeyallsvenskan"),
+            ("shl", "SHL"),
             ("nhl", "NHL"),
+            ("nba", "NBA"),
+            ("nfl", "NFL"),
+            ("mlb", "MLB"),
+            ("atp", "ATP"),
+            ("wta", "WTA"),
+            ("world cup", "World Cup"),
+            ("världscupen", "Världscupen"),
+            ("shoot out", "Shoot Out"),
+            # Sport-specific VM/EM
+            ("handboll-vm", "Handbolls-VM"),
+            ("handbolls-vm", "Handbolls-VM"),
+            ("handboll-em", "Handbolls-EM"),
+            ("handbolls-em", "Handbolls-EM"),
+            ("fotbolls-vm", "Fotbolls-VM"),
+            ("fotbolls-em", "Fotbolls-EM"),
+            ("ishockey-vm", "Ishockey-VM"),
+            ("hockey-vm", "Hockey-VM"),
+            ("dart-vm", "Dart-VM"),
         ]
 
-        text_lower = text.lower()
-        for pattern, name in leagues:
+        for pattern, name in specific_leagues:
             if pattern in text_lower:
                 return name
 
+        # Don't return generic VM/EM/OS - these are often misdetected
         return None
