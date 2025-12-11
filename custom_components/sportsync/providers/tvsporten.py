@@ -39,38 +39,43 @@ class TVSportenProvider(SportProvider):
         try:
             soup = BeautifulSoup(html, "html.parser")
 
-            # TVsporten.nu typical structure:
-            # Events are usually in a container with sport sections
-            # Each event has time, title/teams, channel, and sport category
-
-            # Strategy 1: Look for common event containers
-            # These selectors may need adjustment based on actual site structure
-
-            # Try finding event rows/items
-            event_containers = soup.select(
-                ".event, .match, .broadcast, .schedule-item, "
-                ".tv-event, .sport-event, article, .listing-item, "
-                "tr.event-row, .event-card"
+            # Strategy 1: Find sport sections with headers
+            # Most sport TV guides organize by sport category
+            sport_sections = soup.select(
+                "[class*='sport'], [class*='category'], "
+                "section, .sport-section, .category-section"
             )
 
-            if not event_containers:
-                # Fallback: look for table rows with time patterns
-                event_containers = soup.find_all(
-                    ["tr", "div", "li"],
-                    class_=lambda x: x and any(
-                        kw in str(x).lower()
-                        for kw in ["event", "match", "broadcast", "schedule"]
-                    ),
+            for section in sport_sections:
+                # Get sport from section header or class
+                section_sport = self._get_section_sport(section)
+
+                # Find events within this section
+                section_events = section.select(
+                    ".event, .match, .broadcast, tr, li, "
+                    "[class*='event'], [class*='match']"
                 )
 
-            if not event_containers:
-                # Last resort: find all elements containing time patterns
-                event_containers = self._find_event_elements(soup)
+                for container in section_events:
+                    event = self._parse_event_container(container, date, section_sport)
+                    if event:
+                        events.append(event)
 
-            for container in event_containers:
-                event = self._parse_event_container(container, date)
-                if event:
-                    events.append(event)
+            # Strategy 2: If no sections found, try flat event list
+            if not events:
+                event_containers = soup.select(
+                    ".event, .match, .broadcast, .schedule-item, "
+                    ".tv-event, .sport-event, article, .listing-item, "
+                    "tr.event-row, .event-card"
+                )
+
+                if not event_containers:
+                    event_containers = self._find_event_elements(soup)
+
+                for container in event_containers:
+                    event = self._parse_event_container(container, date, None)
+                    if event:
+                        events.append(event)
 
             _LOGGER.debug("TVsporten: parsed %d events", len(events))
 
@@ -79,6 +84,33 @@ class TVSportenProvider(SportProvider):
             self.last_error = str(err)
 
         return events
+
+    def _get_section_sport(self, section) -> str | None:
+        """Extract sport type from a section element."""
+        # Check section header (h1, h2, h3, etc.)
+        header = section.select_one("h1, h2, h3, h4, .section-title, .sport-title, .category-title")
+        if header:
+            header_text = header.get_text(strip=True)
+            detected = self._detect_sport(header_text)
+            if detected != "other":
+                return detected
+
+        # Check section class names
+        classes = section.get("class", [])
+        if classes:
+            class_str = " ".join(classes)
+            detected = self._detect_sport(class_str)
+            if detected != "other":
+                return detected
+
+        # Check data attributes
+        for attr in ["data-sport", "data-category", "data-type"]:
+            if section.get(attr):
+                detected = self._detect_sport(section.get(attr))
+                if detected != "other":
+                    return detected
+
+        return None
 
     def _find_event_elements(self, soup: BeautifulSoup) -> list:
         """Find elements that look like event listings."""
@@ -98,7 +130,7 @@ class TVSportenProvider(SportProvider):
         return elements[:100]  # Limit to prevent runaway
 
     def _parse_event_container(
-        self, container, date: datetime
+        self, container, date: datetime, section_sport: str | None = None
     ) -> SportEvent | None:
         """Parse a single event container."""
         try:
@@ -115,7 +147,7 @@ class TVSportenProvider(SportProvider):
 
             start_time = date.replace(hour=hour, minute=minute, second=0, microsecond=0)
 
-            # Extract channel - look for common Swedish TV channels
+            # Extract channel
             channel = self._extract_channel(container, text)
 
             # Extract title/match info
@@ -124,8 +156,8 @@ class TVSportenProvider(SportProvider):
             if not title or len(title) < 3:
                 return None
 
-            # Detect sport from text
-            sport = self._detect_sport(text)
+            # Get sport: prioritize section sport, then element sport, then detect from text
+            sport = section_sport or self._get_element_sport(container) or self._detect_sport(text)
 
             # Try to extract teams
             home_team, away_team = self._extract_teams(title)
@@ -159,6 +191,35 @@ class TVSportenProvider(SportProvider):
         except Exception as err:
             _LOGGER.debug("Error parsing event container: %s", err)
             return None
+
+    def _get_element_sport(self, element) -> str | None:
+        """Extract sport from element's classes or data attributes."""
+        # Check element classes
+        classes = element.get("class", [])
+        if classes:
+            class_str = " ".join(classes)
+            detected = self._detect_sport(class_str)
+            if detected != "other":
+                return detected
+
+        # Check data attributes
+        for attr in ["data-sport", "data-category", "data-type"]:
+            if element.get(attr):
+                detected = self._detect_sport(element.get(attr))
+                if detected != "other":
+                    return detected
+
+        # Check for sport-specific child element
+        sport_elem = element.select_one(
+            ".sport, .category, .sport-type, "
+            "[class*='sport-'], [class*='category-']"
+        )
+        if sport_elem:
+            detected = self._detect_sport(sport_elem.get_text(strip=True))
+            if detected != "other":
+                return detected
+
+        return None
 
     def _extract_channel(self, container, text: str) -> str | None:
         """Extract TV channel from container."""

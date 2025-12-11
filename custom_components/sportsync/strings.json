@@ -3,10 +3,14 @@
     "step": {
       "user": {
         "title": "Konfigurera SportSync",
-        "description": "Sport-TV-guide för svenska sportsändningar. Uppdateringsintervall är i sekunder (standard: {default_interval} minuter).",
+        "description": "Sport-TV-guide för svenska sportsändningar.\n\nAnge favoriter som kommaseparerade listor.\nExempel sporter: hockey, fotboll, tennis\nExempel lag: Tre Kronor, Frölunda, AIK",
         "data": {
           "scan_interval": "Uppdateringsintervall (sekunder)",
-          "favorite_sports": "Favoritsporter"
+          "favorite_sports": "Favoritsporter",
+          "favorite_teams": "Favoritlag",
+          "favorite_leagues": "Favoritligor",
+          "favorite_titles": "Sökord i titel",
+          "favorite_channels": "Favoritkanaler"
         }
       }
     },
@@ -18,12 +22,14 @@
     "step": {
       "init": {
         "title": "SportSync inställningar",
-        "description": "Konfigurera dina favoriter för att filtrera sändningar.",
+        "description": "Ange favoriter som kommaseparerade listor.\n\nExempel sporter: hockey, fotboll, tennis\nExempel lag: Tre Kronor, Frölunda, AIK\nExempel ligor: SHL, Allsvenskan, Premier League",
         "data": {
           "scan_interval": "Uppdateringsintervall (sekunder)",
           "favorite_sports": "Favoritsporter",
-          "favorite_teams": "Favoritlag (kommaseparerade)",
-          "favorite_leagues": "Favoritligor (kommaseparerade)"
+          "favorite_teams": "Favoritlag",
+          "favorite_leagues": "Favoritligor",
+          "favorite_titles": "Sökord i titel",
+          "favorite_channels": "Favoritkanaler"
         }
       }
     }

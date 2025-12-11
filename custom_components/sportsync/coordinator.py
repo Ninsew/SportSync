@@ -39,11 +39,13 @@ class SportSyncData:
         sports: list[str] | None = None,
         teams: list[str] | None = None,
         leagues: list[str] | None = None,
+        titles: list[str] | None = None,
+        channels: list[str] | None = None,
     ) -> list[dict]:
         """Get favorite events as dicts, sorted by start time."""
         favorites = [
             e for e in self.events
-            if e.matches_favorites(sports, teams, leagues)
+            if e.matches_favorites(sports, teams, leagues, titles, channels)
         ]
         sorted_favorites = sorted(favorites, key=lambda e: e.start_time)
         return [e.to_dict() for e in sorted_favorites]

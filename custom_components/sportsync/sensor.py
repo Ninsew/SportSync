@@ -14,7 +14,8 @@ from .const import (
     CONF_FAVORITE_SPORTS,
     CONF_FAVORITE_TEAMS,
     CONF_FAVORITE_LEAGUES,
-    SPORT_TYPES,
+    CONF_FAVORITE_TITLES,
+    CONF_FAVORITE_CHANNELS,
 )
 from .coordinator import SportSyncCoordinator, SportSyncData
 
@@ -27,20 +28,9 @@ async def async_setup_entry(
     """Set up SportSync sensors."""
     coordinator: SportSyncCoordinator = hass.data[DOMAIN][entry.entry_id]
 
-    # Get favorites from config
-    favorite_sports = entry.options.get(CONF_FAVORITE_SPORTS, [])
-    favorite_teams = entry.options.get(CONF_FAVORITE_TEAMS, [])
-    favorite_leagues = entry.options.get(CONF_FAVORITE_LEAGUES, [])
-
     entities = [
         SportSyncAllEventsSensor(coordinator, entry),
-        SportSyncFavoritesSensor(
-            coordinator,
-            entry,
-            favorite_sports,
-            favorite_teams,
-            favorite_leagues,
-        ),
+        SportSyncFavoritesSensor(coordinator, entry),
         SportSyncLiveSensor(coordinator, entry),
         SportSyncUpcomingSensor(coordinator, entry),
     ]
@@ -125,24 +115,24 @@ class SportSyncFavoritesSensor(SportSyncBaseSensor):
         self,
         coordinator: SportSyncCoordinator,
         entry: ConfigEntry,
-        favorite_sports: list[str],
-        favorite_teams: list[str],
-        favorite_leagues: list[str],
     ) -> None:
         """Initialize sensor."""
         super().__init__(coordinator, entry)
         self._attr_unique_id = f"{entry.entry_id}_favorites"
-        self._favorite_sports = favorite_sports
-        self._favorite_teams = favorite_teams
-        self._favorite_leagues = favorite_leagues
+        self._load_favorites()
+
+    def _load_favorites(self) -> None:
+        """Load favorites from config entry options."""
+        self._favorite_sports = self._entry.options.get(CONF_FAVORITE_SPORTS, [])
+        self._favorite_teams = self._entry.options.get(CONF_FAVORITE_TEAMS, [])
+        self._favorite_leagues = self._entry.options.get(CONF_FAVORITE_LEAGUES, [])
+        self._favorite_titles = self._entry.options.get(CONF_FAVORITE_TITLES, [])
+        self._favorite_channels = self._entry.options.get(CONF_FAVORITE_CHANNELS, [])
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from coordinator."""
-        # Update favorites from options in case they changed
-        self._favorite_sports = self._entry.options.get(CONF_FAVORITE_SPORTS, [])
-        self._favorite_teams = self._entry.options.get(CONF_FAVORITE_TEAMS, [])
-        self._favorite_leagues = self._entry.options.get(CONF_FAVORITE_LEAGUES, [])
+        self._load_favorites()
         super()._handle_coordinator_update()
 
     @property
@@ -154,6 +144,8 @@ class SportSyncFavoritesSensor(SportSyncBaseSensor):
                     self._favorite_sports,
                     self._favorite_teams,
                     self._favorite_leagues,
+                    self._favorite_titles,
+                    self._favorite_channels,
                 )
             )
         return 0
@@ -166,6 +158,8 @@ class SportSyncFavoritesSensor(SportSyncBaseSensor):
             "favorite_sports": self._favorite_sports,
             "favorite_teams": self._favorite_teams,
             "favorite_leagues": self._favorite_leagues,
+            "favorite_titles": self._favorite_titles,
+            "favorite_channels": self._favorite_channels,
         }
 
         if self.data:
@@ -173,6 +167,8 @@ class SportSyncFavoritesSensor(SportSyncBaseSensor):
                 self._favorite_sports,
                 self._favorite_teams,
                 self._favorite_leagues,
+                self._favorite_titles,
+                self._favorite_channels,
             )
 
         return attrs
